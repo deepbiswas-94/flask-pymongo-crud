@@ -3,13 +3,16 @@ from models.Employee import employeeList,insertEmployee,updateEmployee,deleteEmp
 from flask import jsonify, request,g
 from flask_expects_json import expects_json
 from jsonschema import ValidationError
+from flask_jwt_extended import create_access_token,get_jwt_identity,jwt_required,JWTManager
+
+jwt = JWTManager(app)
 
 schema = {
     'type': 'object',
     'properties': {
         'name': {'type': 'string'},
         'email': {'type': 'string'},
-        'password': {'type': 'string'}
+        'password': {'type': 'string'},
     },
     'required': ['name','email', 'password']
 }
@@ -18,8 +21,13 @@ def getEmployees():
     """ calling Employee model for list of employees
         :Returns:
             - Return list of employees in JSON format
-    """        
-    return employeeList()
+    """       
+    try:    
+        list = employeeList() 
+    except Exception as e:
+        return jsonify('Something went wrong'), 200
+    else:
+        return jsonify(list), 200        
 
 @expects_json(schema)
 def addOrUpdateEmployee():
@@ -28,9 +36,9 @@ def addOrUpdateEmployee():
             - Insert or update operation status
     """        
     _json = request.json
-    if '_id' in _json:
-        _id = _json['_id']
-        if _id and request.method == 'POST':
+    if 'employee_id' in _json:
+        employee_id = _json['employee_id']
+        if employee_id and request.method == 'POST':
             try:                
                 status = updateEmployee(_json)
             except:
@@ -69,8 +77,8 @@ def deleteEmployee():
             - Delete operation status
     """            
     _json = request.json
-    _id = _json['_id']
-    if _id and request.method == 'POST':        
+    employee_id = _json['employee_id']
+    if employee_id and request.method == 'POST':        
         try:
             status = deleteEmployeeOp(_json)
         except:

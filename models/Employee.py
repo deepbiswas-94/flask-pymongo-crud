@@ -1,6 +1,10 @@
 from app import mongo
 from bson.json_util import dumps
 from bson.objectid import ObjectId
+import json
+
+def parse_json(data):
+    return json.loads(dumps(data))
 
 def employeeList():
     """ Getting a list of employees
@@ -9,8 +13,9 @@ def employeeList():
             - Return list of employees in JSON format
     """    
     employees = mongo.db.employees.find()
-    resp = dumps(employees)
-    return resp
+    test = [doc for doc in employees]
+    finalResult = parse_json(test)
+    return finalResult
 
 def insertEmployee(data):
     """ Insert a Employee document 
@@ -22,7 +27,10 @@ def insertEmployee(data):
     """
     employee_exist_status = checkIfEmployeeExists({'email': data['email']})
     if not employee_exist_status:                
-        response = mongo.db.employees.insert_one(data)
+        list = employeeList()
+        newEmployeeId = len(list) + 1
+        newData = {**data,'employee_id':newEmployeeId}
+        response = mongo.db.employees.insert_one(newData)
         return response.acknowledged
     else:
         return False
@@ -35,10 +43,14 @@ def updateEmployee(data):
         :Returns:
             - Return True if operation succeeded
     """    
-    response = mongo.db.employees.update_one(
-        {'_id': ObjectId(data['_id']['$oid']) if '$oid' in data['_id'] else ObjectId(data['_id'])}, 
-        {'$set': {'name': data['name'], 'email': data['email'], 'password': data['password']}})
-    return response.acknowledged
+    employee_exist_status = checkIfEmployeeExists({'employee_id': data['employee_id']})
+    if employee_exist_status:                    
+        response = mongo.db.employees.update_one(
+            {'employee_id': data['employee_id']}, 
+            {'$set': {'name': data['name'], 'email': data['email'], 'password': data['password']}})
+        return response.acknowledged
+    else:
+        return False
 
 def deleteEmployeeOp(data):
     """ Delete a Employee document 
@@ -48,9 +60,9 @@ def deleteEmployeeOp(data):
         :Returns:
             - Return True if the delete was successful
     """        
-    employee_exist_status = checkIfEmployeeExists({'_id': ObjectId(data['_id'])})
+    employee_exist_status = checkIfEmployeeExists({'employee_id': data['employee_id']})
     if employee_exist_status:        
-        response = mongo.db.employees.delete_one({'_id': ObjectId(data['_id'])})
+        response = mongo.db.employees.delete_one({'employee_id': data['employee_id']})
         return response.acknowledged
     else:
         return False
