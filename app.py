@@ -1,9 +1,11 @@
 from flask import Flask
-from flask_pymongo import PyMongo
 import sys
+from routes import router
 
 app = Flask(__name__)
-app.config.from_pyfile('config.py')
 sys.dont_write_bytecode = True
+app.register_blueprint(router)
 
-mongo = PyMongo(app)
+
+if __name__ == "__main__":
+    app.run(debug=True)

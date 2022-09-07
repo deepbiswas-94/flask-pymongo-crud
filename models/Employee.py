@@ -1,7 +1,14 @@
-from app import mongo
 from bson.json_util import dumps
-from bson.objectid import ObjectId
+from flask import Flask
 import json
+from flask_bcrypt import Bcrypt
+from flask_pymongo import PyMongo
+
+
+app = Flask(__name__)
+app.config.from_pyfile('../config.py')
+bcryptObj = Bcrypt(app)
+mongo = PyMongo(app)
 
 def parse_json(data):
     return json.loads(dumps(data))

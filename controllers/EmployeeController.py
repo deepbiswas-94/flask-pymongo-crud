@@ -1,10 +1,10 @@
-from app import app
 from models.Employee import employeeList,insertEmployee,updateEmployee,deleteEmployeeOp
-from flask import jsonify, request,g
+from flask import jsonify, request,g,Flask
 from flask_expects_json import expects_json
 from jsonschema import ValidationError
 from flask_jwt_extended import create_access_token,get_jwt_identity,jwt_required,JWTManager
 
+app = Flask(__name__)
 jwt = JWTManager(app)
 
 schema = {
